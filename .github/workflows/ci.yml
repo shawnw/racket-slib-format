@@ -24,6 +24,6 @@ jobs:
       - name: Installing slib-format and its dependencies
         run: raco pkg install --no-docs --auto --name slib-format
       - name: Compiling slib-format and building its docs
-        run: raco setup --check-pkg-deps --unused-pkg-deps slib-format
+        run: raco setup --check-pkg-deps --unused-pkg-deps --pkgs slib-format
       - name: Testing slib-format
         run: raco test -x -p slib-format
