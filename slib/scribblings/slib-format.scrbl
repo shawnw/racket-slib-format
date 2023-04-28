@@ -27,11 +27,15 @@ output is to the current error port if available by the implementation. Otherwis
 
 @code{format-string} must be a string. In case of a formatting error @code{format} returns @code{#f} and prints a message on the current output or error port. Characters are
 output as if the string were output by the @code{display} function with the exception of those prefixed by a tilde (@tt{~}). For a detailed description of the @code{format-string}
-syntax please consult a Common LISP format reference manual. For a test suite to verify this format implementation @code{(require slib/formatst)}
-(Note: The test script will always fail a few cases; it does with Guile too. The failures seem to be related to not saving output column between calls when returning a string).
+syntax please consult a Common LISP format reference manual. For a test suite to verify this format implementation @code{(require slib/formatst)}.
 
-@bold{Racket-specific changes}: The pretty print format @tt{~Y} uses the standard Racket @code{pretty-print} routine, not
+@bold{Racket-specific changes}:
+
+The pretty print format @tt{~Y} uses the standard Racket @code{pretty-print} routine, not
 @hyperlink["https://people.csail.mit.edu/jaffer/slib/Pretty_002dPrint.html#Pretty_002dPrint"]{the version included in SLIB}.
+
+The original code fails a few included test cases because it doesn't preserve the output column between calls that return a string. This version does so and passes
+all test cases. This affects the behavior of things like @tt{~&} across calls.
 
 }
 

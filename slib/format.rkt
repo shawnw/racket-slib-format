@@ -143,6 +143,8 @@
 (define format:roman-boundary-values
   '(100 100 10 10 1 1 #f))
 
+(define string-port-output-col (make-thread-cell 0 #t))
+
 ;@
 (define (format . args)
   (define format:port #f)		; curr. format output port
@@ -1500,8 +1502,10 @@
 	(call-with-output-string
 	    (lambda (port)
               (set! format:port port)
-              (port-count-lines! port)
-              (format:out (car arglist) (cdr arglist)))))
+              ; Cache the previous output col for calls that return strings
+              (set! format:output-col (thread-cell-ref string-port-output-col))
+              (format:out (car arglist) (cdr arglist))
+              (thread-cell-set! string-port-output-col format:output-col))))
        (else
 	(slib:error 'format "illegal destination" destination))))))
 
