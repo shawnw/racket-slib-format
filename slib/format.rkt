@@ -13,8 +13,10 @@
   [format:max-iterations (parameter/c exact-nonnegative-integer?)]
   [format:iteration-bounded (parameter/c any/c boolean?)]
   [format:expch (parameter/c char?)]
+  [format (-> (or/c boolean? output-port? string? number?) any/c ... (or/c boolean? string?))]
   )
- format format:iobj->str)
+ format:iobj->str ; used by the test code
+ )
 
 (define (slib:error name msg . args)
   (raise-arguments-error name msg "arguments" args))
@@ -1497,8 +1499,9 @@
 	     (not destination))
 	(call-with-output-string
 	    (lambda (port)
-	      (set! format:port port)
-	      (format:out (car arglist) (cdr arglist)))))
+              (set! format:port port)
+              (port-count-lines! port)
+              (format:out (car arglist) (cdr arglist)))))
        (else
 	(slib:error 'format "illegal destination" destination))))))
 
@@ -1654,10 +1657,13 @@
 	(set-cdr! pair col)
 	(set! *port-columns* (cons (cons pname col) *port-columns*)))))
 
-;;; Use Racket port position tracking instead
+;;; Use Racket port position tracking instead.
+;;; Another option better than the above would be to use weak refs if the
+;;; scheme being used supports them.
 (define (format:get-port-column port)
   (let-values ([(lineno colno pos) (port-next-location port)])
     (if colno colno 0)))
+;;; Not actually used.
 (define (format:set-port-column! port colno)
   (let-values ([(lineno old-colno pos) (port-next-location port)])
     (set-port-next-location! port lineno colno pos)))
@@ -1679,4 +1685,6 @@
 		  (string-set! cap-str i (char-upcase c)))))))))
 
 (define (format:string-capitalize-first str)
-  (regexp-replace #px"[[:lower:]]" (string-downcase str) string-upcase))
+  (regexp-replace #px"[[:lower:]]"
+                  (string-downcase str)
+                  (lambda (s) (string (char-titlecase (string-ref s 0))))))
