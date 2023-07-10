@@ -14,9 +14,20 @@
   [format:iteration-bounded (parameter/c any/c boolean?)]
   [format:expch (parameter/c char?)]
   [format (-> (or/c boolean? output-port? string? number?) any/c ... (or/c boolean? string?))]
+  [printf (-> string? any/c ... void?)]
+  [eprintf (-> string? any/c ... void?)]
+  [fprintf (-> output-port? string? any/c ... void?)]
   )
  format:iobj->str ; used by the test code
  )
+
+
+(define (printf fmt . args)
+  (void (apply format #t fmt args)))
+(define (eprintf fmt . args)
+  (void (apply format (current-error-port) fmt args)))
+(define (fprintf port fmt . args)
+  (void (apply format port fmt args)))
 
 (define (slib:error name msg . args)
   (raise-arguments-error name msg "arguments" args))

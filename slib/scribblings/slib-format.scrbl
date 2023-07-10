@@ -1,6 +1,6 @@
 #lang scribble/manual
 @require[@for-label[slib/format
-                    (except-in racket/base format)
+                    (except-in racket/base format printf eprintf fprintf)
                     racket/pretty]]
 
 @title{SLIB/Common Lisp format for Racket}
@@ -29,13 +29,33 @@ output is to the current error port if available by the implementation. Otherwis
 output as if the string were output by the @code{display} function with the exception of those prefixed by a tilde (@tt{~}). For a detailed description of the @code{format-string}
 syntax please consult a Common LISP format reference manual. For a test suite to verify this format implementation @code{(require slib/formatst)}.
 
-@bold{Racket-specific changes}:
+@subsection{Racket-specific}
 
 The pretty print format @tt{~Y} uses the standard Racket @code{pretty-print} routine, not
 @hyperlink["https://people.csail.mit.edu/jaffer/slib/Pretty_002dPrint.html#Pretty_002dPrint"]{the version included in SLIB}.
 
 The original code fails a few included test cases because it doesn't preserve the output column between calls that return a string. This version does so and passes
 all test cases. This affects the behavior of things like @tt{~&} across calls.
+
+}
+
+There are also a few functions that are equivalents to the standard Racket formatted output functions, allowing this module to serve as a drop-in replacement in code that uses them:
+
+@defproc[(printf [format-string string?] [arg any/c] ...) void?]{
+
+ Always prints to the current output port.
+
+}
+
+@defproc[(eprintf [format-string string?] [arg any/c] ...) void?]{
+
+ Always prints to the current error port.
+
+}
+
+@defproc[(fprintf [port output-port?] [format-string string?] [arg any/c] ...) void?]{
+
+ Prints to the given output port.
 
 }
 
