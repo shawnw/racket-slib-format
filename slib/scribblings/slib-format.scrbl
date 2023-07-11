@@ -29,7 +29,7 @@ output is to the current error port if available by the implementation. Otherwis
 output as if the string were output by the @code{display} function with the exception of those prefixed by a tilde (@tt{~}). For a detailed description of the @code{format-string}
 syntax please consult a Common LISP format reference manual. For a test suite to verify this format implementation @code{(require slib/formatst)}.
 
-@subsection{Racket-specific}
+@bold{Racket-specific notes}:
 
 The pretty print format @tt{~Y} uses the standard Racket @code{pretty-print} routine, not
 @hyperlink["https://people.csail.mit.edu/jaffer/slib/Pretty_002dPrint.html#Pretty_002dPrint"]{the version included in SLIB}.
@@ -38,6 +38,8 @@ The original code fails a few included test cases because it doesn't preserve th
 all test cases. This affects the behavior of things like @tt{~&} across calls.
 
 }
+
+@subsection{Extra functions}
 
 There are also a few functions that are equivalents to the standard Racket formatted output functions, allowing this module to serve as a drop-in replacement in code that uses them:
 
@@ -94,3 +96,14 @@ The maximum number of iterations performed by a @tt{~{...~}} control. Has effect
 
 }
 
+@subsection{Racket-specific configuration}
+
+@defparam[format:char-style style (or/c 'ascii 'racket) #:value 'racket]{
+
+As originally written, @code{format} uses ASCII abbreviations for rendering control character literals, so that, say, @code{(format "~@C" #\tab)} returns @code{"#\\ht"},
+and prints characters with a value greater than 127 in a variable-digit-count octal notation. These character literals cannot be read back with Racket's @code{read}.
+
+When this parameter is set to @code{'racket}, it will instead use
+@hyperlink["https://docs.racket-lang.org/reference/reader.html#%28part._parse-character%29"]{forms that the Racket reader understands}.
+
+}

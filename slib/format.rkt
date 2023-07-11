@@ -2,7 +2,7 @@
 
 ; Adapted to Racket by Shawn Wagner
 
-(require racket/contract racket/port racket/pretty soup-lib/parameter)
+(require racket/contract racket/port racket/pretty soup-lib/parameter (only-in racket/format ~r))
 (provide
  (contract-out
   [format:version string?]
@@ -13,6 +13,7 @@
   [format:max-iterations (parameter/c exact-nonnegative-integer?)]
   [format:iteration-bounded (parameter/c any/c boolean?)]
   [format:expch (parameter/c char?)]
+  [format:char-style (parameter/c (or/c 'ascii 'racket))]
   [format (-> (or/c boolean? output-port? string? number?) any/c ... (or/c boolean? string?))]
   [printf (-> string? any/c ... void?)]
   [eprintf (-> string? any/c ... void?)]
@@ -28,6 +29,9 @@
   (void (apply format (current-error-port) fmt args)))
 (define (fprintf port fmt . args)
   (void (apply format port fmt args)))
+
+(define-parameter format:char-style 'racket)
+
 
 (define (slib:error name msg . args)
   (raise-arguments-error name msg "arguments" args))
@@ -1638,6 +1642,12 @@
 ;; according to the ASCII character set.
 
 (define (format:char->str ch)
+  (case (format:char-style)
+    ((ascii) (format:char->str/ascii ch))
+    ((racket) (format:char->str/racket ch))
+    (else (error "invalid character printing style" (format:char-style)))))
+
+(define (format:char->str/ascii ch)
   (let ((int-rep (char->integer ch)))
     (if (< int-rep 0)			; if chars are [-128...+127]
 	(set! int-rep (+ int-rep 256)))
@@ -1654,6 +1664,24 @@
 	     (substring s 2 (string-length s)))
 	   (number->string int-rep 8)))
       (else (string ch))))))
+
+;; Write characters using syntax the Racket reader can understand.
+(define racket-char-names
+  #hasheqv((#\nul . "nul") (#\backspace . "backspace") (#\tab . "tab") (#\newline . "newline") (#\vtab . "vtab") (#\page . "page") (#\return . "return")
+                           (#\space . "space") (#\rubout . "rubout")))
+(define (char->unicode ch)
+  (string-append "U" (~r (char->integer ch) #:base 16 #:min-width 4 #:pad-string "0")))
+(define (format:char->str/racket ch)
+  (string-append
+   "#\\"
+   (cond
+     ((char=? ch #\space) "space")
+     ((char-iso-control? ch)
+      (hash-ref racket-char-names ch (lambda () (char->unicode ch))))
+     ((char-graphic? ch)
+      (string ch))
+     (else
+      (char->unicode ch)))))
 
 ;;; We should keep separate track of columns for each port, but
 ;;; keeping pointers to ports will foil GC.  Instead, keep
