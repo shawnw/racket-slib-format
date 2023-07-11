@@ -100,7 +100,7 @@ The maximum number of iterations performed by a @tt{~{...~}} control. Has effect
 
 @defparam[format:char-style style (or/c 'ascii 'racket) #:value 'racket]{
 
-As originally written, @code{format} uses ASCII abbreviations for rendering control character literals, so that, say, @code{(format "~@C" #\tab)} returns @code{"#\\ht"},
+As originally written, @code{format} uses ASCII abbreviations for rendering control character literals, so that, say, @code|{(format "~@C" #\tab)}| returns @code{"#\\ht"},
 and prints characters with a value greater than 127 in a variable-digit-count octal notation. These character literals cannot be read back with Racket's @code{read}.
 
 When this parameter is set to @code{'racket}, it will instead use
