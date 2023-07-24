@@ -1667,21 +1667,19 @@
 
 ;; Write characters using syntax the Racket reader can understand.
 (define racket-char-names
-  #hasheqv((#\nul . "nul") (#\backspace . "backspace") (#\tab . "tab") (#\newline . "newline") (#\vtab . "vtab") (#\page . "page") (#\return . "return")
-                           (#\space . "space") (#\rubout . "rubout")))
+  #hasheqv((#\nul . "#\\nul") (#\backspace . "#\\backspace") (#\tab . "#\\tab") (#\newline . "#\\newline") (#\vtab . "#\\vtab") (#\page . "#\\page") (#\return . "#\\return")
+                           (#\space . "#\\space") (#\rubout . "#\\rubout")))
 (define (char->unicode ch)
-  (string-append "U" (~r (char->integer ch) #:base 16 #:min-width 4 #:pad-string "0")))
+  (string-append (if (char<=? ch #\uFFFF) "#\\u" "#\\U") (~r (char->integer ch) #:base 16 #:min-width 4 #:pad-string "0")))
 (define (format:char->str/racket ch)
-  (string-append
-   "#\\"
-   (cond
-     ((char=? ch #\space) "space")
-     ((char-iso-control? ch)
-      (hash-ref racket-char-names ch (lambda () (char->unicode ch))))
-     ((char-graphic? ch)
-      (string ch))
-     (else
-      (char->unicode ch)))))
+  (cond
+    ((char=? ch #\space) "#\\space")
+    ((char-iso-control? ch)
+     (hash-ref racket-char-names ch (lambda () (char->unicode ch))))
+    ((char-graphic? ch)
+     (string #\# #\\ ch))
+    (else
+     (char->unicode ch))))
 
 ;;; We should keep separate track of columns for each port, but
 ;;; keeping pointers to ports will foil GC.  Instead, keep
