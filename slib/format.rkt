@@ -140,13 +140,13 @@
        "ninety"))
 
 (define format:ordinal-ones-list
-  '(#f "first" "second" "third" "fourth" "fifth"
+  '#(#f "first" "second" "third" "fourth" "fifth"
        "sixth" "seventh" "eighth" "ninth" "tenth" "eleventh" "twelfth"
        "thirteenth" "fourteenth" "fifteenth" "sixteenth" "seventeenth"
        "eighteenth" "nineteenth"))
 
 (define format:ordinal-tens-list
-  '(#f #f "twentieth" "thirtieth" "fortieth" "fiftieth" "sixtieth"
+  '#(#f #f "twentieth" "thirtieth" "fortieth" "fiftieth" "sixtieth"
        "seventieth" "eightieth" "ninetieth"))
 
 ;; roman numerals (from dorai@cs.rice.edu).
@@ -427,15 +427,15 @@
 		    "")
 		(if (= tens+ones 0) ""
 		    (if (< tens+ones 20)
-			(list-ref format:ordinal-ones-list tens+ones)
+			(vector-ref format:ordinal-ones-list tens+ones)
 			(let ((tens (quotient tens+ones 10))
 			      (ones (remainder tens+ones 10)))
 			  (if (= ones 0)
-			      (list-ref format:ordinal-tens-list tens)
+			      (vector-ref format:ordinal-tens-list tens)
 			      (string-append
 			       (list-ref format:cardinal-tens-list tens)
 			       "-"
-			       (list-ref format:ordinal-ones-list ones))))
+			       (vector-ref format:ordinal-ones-list ones))))
 			))))))))
 
   ;; format fixed flonums (~F)
