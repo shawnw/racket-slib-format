@@ -123,20 +123,20 @@
 ;; cardinals & ordinals (from dorai@cs.rice.edu)
 
 (define format:cardinal-thousand-block-list
-  '("" " thousand" " million" " billion" " trillion" " quadrillion"
+  '#("" " thousand" " million" " billion" " trillion" " quadrillion"
     " quintillion" " sextillion" " septillion" " octillion" " nonillion"
     " decillion" " undecillion" " duodecillion" " tredecillion"
     " quattuordecillion" " quindecillion" " sexdecillion" " septendecillion"
     " octodecillion" " novemdecillion" " vigintillion"))
 
 (define format:cardinal-ones-list
-  '(#f "one" "two" "three" "four" "five"
+  '#(#f "one" "two" "three" "four" "five"
        "six" "seven" "eight" "nine" "ten" "eleven" "twelve" "thirteen"
        "fourteen" "fifteen" "sixteen" "seventeen" "eighteen"
        "nineteen"))
 
 (define format:cardinal-tens-list
-  '(#f #f "twenty" "thirty" "forty" "fifty" "sixty" "seventy" "eighty"
+  '#(#f #f "twenty" "thirty" "forty" "fifty" "sixty" "seventy" "eighty"
        "ninety"))
 
 (define format:ordinal-ones-list
@@ -353,22 +353,22 @@
 	 (if (> hundreds 0)
 	     (append
 	      (string->list
-	       (list-ref format:cardinal-ones-list hundreds))
+	       (vector-ref format:cardinal-ones-list hundreds))
 	      (string->list" hundred")
 	      (if (> tens+ones 0) '(#\space) '()))
 	     '())
 	 (if (< tens+ones 20)
 	     (if (> tens+ones 0)
 		 (string->list
-		  (list-ref format:cardinal-ones-list tens+ones))
+		  (vector-ref format:cardinal-ones-list tens+ones))
 		 '())
 	     (append
 	      (string->list
-	       (list-ref format:cardinal-tens-list tens))
+	       (vector-ref format:cardinal-tens-list tens))
 	      (if (> ones 0)
 		  (cons #\-
 			(string->list
-			 (list-ref format:cardinal-ones-list ones)))
+			 (vector-ref format:cardinal-ones-list ones)))
 		  '())))))))
 
   (define format:num->cardinal
@@ -380,7 +380,7 @@
 	    ((< n 0) (string-append "minus " (format:num->cardinal (- n))))
 	    (else
 	     (let ((power3-word-limit
-		    (length format:cardinal-thousand-block-list)))
+		    (vector-length format:cardinal-thousand-block-list)))
 	       (let loop ((n n)
 			  (power3 0)
 			  (s '()))
@@ -397,7 +397,7 @@
 				  (format:num->cardinal999 n-after-block)
 				  (if (< power3 power3-word-limit)
 				      (string->list
-				       (list-ref
+				       (vector-ref
 					format:cardinal-thousand-block-list
 					power3))
 				      (append
@@ -433,7 +433,7 @@
 			  (if (= ones 0)
 			      (vector-ref format:ordinal-tens-list tens)
 			      (string-append
-			       (list-ref format:cardinal-tens-list tens)
+			       (vector-ref format:cardinal-tens-list tens)
 			       "-"
 			       (vector-ref format:ordinal-ones-list ones))))
 			))))))))
