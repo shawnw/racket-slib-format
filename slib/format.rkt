@@ -14,7 +14,17 @@
   [format:iteration-bounded (parameter/c any/c boolean?)]
   [format:expch (parameter/c char?)]
   [format:char-style (parameter/c (or/c 'ascii 'racket))]
-  [format (-> (or/c boolean? output-port? string? number?) any/c ... (or/c boolean? string?))]
+  ;[format (-> (or/c boolean? output-port? string? number?) any/c ... (or/c boolean? string?))]
+  [format (->i ([first (or/c boolean? output-port? string? number?)])
+               #:rest [args (first)
+                            (if (string? first)
+                                list?
+                                (cons/c string? list?))]
+               [result (first)
+                       (or/c (if (or (string? first) (eq? first #f))
+                                 string?
+                                 #t)
+                             #f)])]
   [printf (-> string? any/c ... void?)]
   [eprintf (-> string? any/c ... void?)]
   [fprintf (-> output-port? string? any/c ... void?)]
