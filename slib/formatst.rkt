@@ -177,6 +177,7 @@
 
 ; character test
 
+(displayln "ASCII-style characters")
 (parameterize ([format:char-style 'ascii])
   (test '("~c" #\a) "a")
   (test '("~@c" #\a) "#\\a")
@@ -195,6 +196,26 @@
   (test `("~:c" ,(integer->char 128)) "#\\200")
   (test `("~:c" ,(integer->char 127)) "#\\177")
   (test `("~:c" ,(integer->char 255)) "#\\377"))
+
+(displayln "Racket style characters")
+(parameterize ([format:char-style 'racket])
+  (test '("~c" #\a) "a")
+  (test '("~@c" #\a) "#\\a")
+  (test `("~@c" ,(integer->char 32)) "#\\space")
+  (test `("~@c" ,(integer->char 0)) "#\\nul")
+  (test `("~@c" ,(integer->char 27)) "#\\u001B")
+  (test `("~@c" ,(integer->char 127)) "#\\rubout")
+  (test `("~@c" ,(integer->char 128)) "#\\u0080")
+  (test `("~@c" ,(integer->char 255)) "#\\ÿ")
+  (test '("~65c") "A")
+  (test '("~7@c") "#\\u0007")
+  (test '("~:c" #\a) "a")
+  (test `("~:c" ,(integer->char 1)) "␁")
+  (test `("~:c" ,(integer->char 27)) "␛")
+  (test '("~7:c") "␇")
+  (test `("~:c" ,(integer->char 128)) "U+0080")
+  (test `("~:c" ,(integer->char 127)) "␡")
+  (test `("~:c" ,(integer->char 255)) "ÿ"))
 
 
 ; plural test

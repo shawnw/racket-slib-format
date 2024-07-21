@@ -1083,23 +1083,7 @@
 		     ((at)
 		      (format:out-str (format:char->str ch)))
 		     ((colon)
-		      (let ((c (char->integer ch)))
-			(if (< c 0)
-			    (set! c (+ c 256)))	; compensate complement impl.
-			(cond
-			 ((< c #x20) ; assumes that control chars are < #x20
-			  (format:out-char #\^)
-			  (format:out-char
-			   (integer->char (+ c #x40))))
-			 ((>= c #x7f)
-			  (format:out-str "#\\")
-			  (format:out-str
-			   (if format:radix-pref
-			       (let ((s (number->string c 8)))
-				 (substring s 2 (string-length s)))
-			       (number->string c 8))))
-			 (else
-			  (format:out-char ch)))))
+                      (format:out-str (format:colon-char->str ch)))
 		     (else (format:out-char ch))))
 		 (anychar-dispatch))
 		((#\P)			; Plural
@@ -1676,7 +1660,7 @@
   #hasheqv((#\nul . "#\\nul") (#\backspace . "#\\backspace") (#\tab . "#\\tab") (#\newline . "#\\newline") (#\vtab . "#\\vtab") (#\page . "#\\page") (#\return . "#\\return")
                            (#\space . "#\\space") (#\rubout . "#\\rubout")))
 (define (char->unicode ch)
-  (string-append (if (char<=? ch #\uFFFF) "#\\u" "#\\U") (~r (char->integer ch) #:base 16 #:min-width 4 #:pad-string "0")))
+  (string-append (if (char<=? ch #\uFFFF) "#\\u" "#\\U") (~r (char->integer ch) #:base '(up 16) #:min-width 4 #:pad-string "0")))
 (define (format:char->str/racket ch)
   (cond
     ((char=? ch #\space) "#\\space")
@@ -1686,6 +1670,41 @@
      (string #\# #\\ ch))
     (else
      (char->unicode ch))))
+
+(define (format:colon-char->str ch)
+  (case (format:char-style)
+    [(ascii) (format:colon-char->str/ascii ch)]
+    [(racket) (format:colon-char->str/racket ch)]
+    (else (error "invalid character printing style" (format:char-style)))))
+
+(define (format:colon-char->str/ascii ch)
+  (let ((c (char->integer ch)))
+    #;(if (< c 0)
+          (set! c (+ c 256)))	; compensate complement impl.
+    (cond
+      ((< c #x20) ; assumes that control chars are < #x20
+       (string #\^ (integer->char (+ c #x40))))
+      ((>= c #x7f)
+       (string-append
+        "#\\"
+        (if format:radix-pref
+            (let ((s (number->string c 8)))
+              (substring s 2 (string-length s)))
+            (number->string c 8))))
+      (else
+       (string ch)))))
+
+(define (format:colon-char->str/racket ch)
+  (let ((c (char->integer ch)))
+    (cond
+      [(< c #x20) ; assumes that control chars are < #x20
+       (string (integer->char (+ c #x2400)))]
+      [(char=? ch #\rubout) "␡"]
+      [(char=? ch #\space) "␣"]
+      [(char=? ch #\u00A0) "⍽"] ; Non-breaking Space
+      [(char-graphic? ch) (string ch)]
+      [else
+       (string-append "U+" (~r c #:base '(up 16) #:min-width 4 #:pad-string "0"))])))
 
 ;;; We should keep separate track of columns for each port, but
 ;;; keeping pointers to ports will foil GC.  Instead, keep

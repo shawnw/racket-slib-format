@@ -2,6 +2,13 @@
 @require[@for-label[slib/format
                     (except-in racket/base format printf eprintf fprintf)
                     racket/pretty]]
+@(require racket/sandbox scribble/example)
+
+@(define format-evaluator
+   (parameterize ([sandbox-output 'string]
+                  [sandbox-error-output 'string]
+                  [sandbox-memory-limit 50])
+     (make-evaluator 'racket/base #:requires '("../format.rkt"))))
 
 @title{SLIB/Common Lisp format for Racket}
 @author{@author+email["Shawn Wagner" "shawnw.mobile@gmail.com"]}
@@ -100,10 +107,23 @@ The maximum number of iterations performed by a @tt{~{...~}} control. Has effect
 
 @defparam[format:char-style style (or/c 'ascii 'racket) #:value 'racket]{
 
-As originally written, @code{format} uses ASCII abbreviations for rendering control character literals, so that, say, @code|{(format "~@C" #\tab)}| returns @code{"#\\ht"},
-and prints characters with a value greater than 127 in a variable-digit-count octal notation. These character literals cannot be read back with Racket's @code{read}.
+As originally written, @code{format} uses ASCII abbreviations and @hyperlink["https://en.wikipedia.org/wiki/Caret_notation"]{caret notation} for rendering control character
+literals, so that, say, @code|{(format "~@C" #\tab)}| returns @code{"#\\ht"}, and prints characters with a value greater than 127 in a variable-digit-count octal notation.
+ These character literals cannot be read back with Racket's @code{read}.
 
 When this parameter is set to @code{'racket}, it will instead use
-@hyperlink["https://docs.racket-lang.org/reference/reader.html#%28part._parse-character%29"]{forms that the Racket reader understands}.
+@hyperlink["https://docs.racket-lang.org/reference/reader.html#%28part._parse-character%29"]{forms that the Racket reader understands} for @tt["~@C"],
+and Unicode symbols or @tt{U+XXXX} forms for unprintable characters for @tt["~:C"].
+
+@examples[#:eval format-evaluator
+          (parameterize ([format:char-style 'racket])
+            (list (format #f "~@C ~@C ~@C ~@C" #\backspace #\ÿ #\u2028 #\newline)
+                  (format #f "foo~:Cbar~:Cbaz~:C~:C" #\space #\tab #\u2028 #\newline)))
+
+          (parameterize ([format:char-style 'ascii])
+            (list (format #f "~@C ~@C ~@C ~@C" #\backspace #\ÿ #\u2028 #\newline)
+                  (format #f "foo~:Cbar~:Cbaz~:C~:C" #\space #\tab #\u2028 #\newline)))
+
+          ]
 
 }
