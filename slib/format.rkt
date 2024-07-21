@@ -5,9 +5,6 @@
 (require racket/contract racket/port racket/pretty soup-lib/parameter (only-in racket/format ~r))
 (provide
  (contract-out
-  [format:version string?]
-  [format:floats boolean?]
-  [format:complex-numbers boolean?]
   [format:symbol-case-conv (parameter/c (or/c (-> string? string?) #f))]
   [format:iobj-case-conv (parameter/c (or/c (-> string? string?) #f))]
   [format:max-iterations (parameter/c exact-nonnegative-integer?)]
@@ -29,7 +26,7 @@
   [eprintf (-> string? any/c ... void?)]
   [fprintf (-> output-port? string? any/c ... void?)]
   )
- format:iobj->str ; used by the test code
+ format:version format:floats format:complex-numbers format:iobj->str ; used by the test code
  )
 
 
@@ -1044,24 +1041,24 @@
 		      modifier (next-arg) (cdr params) (car params)))
 		 (anychar-dispatch))
 		((#\F)			; Fixed-format floating-point
-		 (if format:floats
+		 ;(if format:floats
 		     (format:out-fixed modifier (next-arg) params)
-		     (format:out-str (number->string (next-arg))))
+		     ;(format:out-str (number->string (next-arg))))
 		 (anychar-dispatch))
 		((#\E)			; Exponential floating-point
-		 (if format:floats
+		 ;(if format:floats
 		     (format:out-expon modifier (next-arg) params)
-		     (format:out-str (number->string (next-arg))))
+		     ;(format:out-str (number->string (next-arg))))
 		 (anychar-dispatch))
 		((#\G)			; General floating-point
-		 (if format:floats
+		 ;(if format:floats
 		     (format:out-general modifier (next-arg) params)
-		     (format:out-str (number->string (next-arg))))
+		     ;(format:out-str (number->string (next-arg))))
 		 (anychar-dispatch))
 		((#\$)			; Dollars floating-point
-		 (if format:floats
+		 ;(if format:floats
 		     (format:out-dollar modifier (next-arg) params)
-		     (format:out-str (number->string (next-arg))))
+		     ;(format:out-str (number->string (next-arg))))
 		 (anychar-dispatch))
 		((#\I)			; Complex numbers
 		 #;(if (not format:complex-numbers)
