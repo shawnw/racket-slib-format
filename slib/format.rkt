@@ -108,7 +108,7 @@
 (define format:complex-numbers #t)
 ;; Detects if the scheme system implements complex numbers.
 
-(define format:radix-pref (char=? #\# (string-ref (number->string 8 8) 0)))
+;;(define format:radix-pref (char=? #\# (string-ref (number->string 8 8) 0)))
 ;; Detects if number->string adds a radix prefix.
 
 (define format:ascii-non-printable-charnames
@@ -238,7 +238,7 @@
     (if (not (integer? number))
 	(raise-argument-error 'format "integer?" number))
     (let ((numstr (number->string number radix)))
-      (if (and format:radix-pref (not (= radix 10)))
+      #;(if (and format:radix-pref (not (= radix 10)))
 	  (set! numstr (substring numstr 2 (string-length numstr))))
       (if (and (null? pars) (not modifier))
 	  (format:out-str numstr)
@@ -1649,7 +1649,8 @@
        (vector-ref format:ascii-non-printable-charnames int-rep))
       ((= int-rep 127) "del")
       ((>= int-rep 128)			; octal representation
-       (if format:radix-pref
+       (number->string int-rep 8)
+       #;(if format:radix-pref
 	   (let ((s (number->string int-rep 8)))
 	     (substring s 2 (string-length s)))
 	   (number->string int-rep 8)))
@@ -1687,7 +1688,8 @@
       ((>= c #x7f)
        (string-append
         "#\\"
-        (if format:radix-pref
+        (number->string c 8)
+        #;(if format:radix-pref
             (let ((s (number->string c 8)))
               (substring s 2 (string-length s)))
             (number->string c 8))))
