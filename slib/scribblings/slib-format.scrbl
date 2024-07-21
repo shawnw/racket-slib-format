@@ -8,7 +8,7 @@
    (parameterize ([sandbox-output 'string]
                   [sandbox-error-output 'string]
                   [sandbox-memory-limit 50])
-     (make-evaluator 'racket/base #:requires '("../format.rkt"))))
+     (make-evaluator 'racket/base #:requires '(slib/format))))
 
 @title{SLIB/Common Lisp format for Racket}
 @author{@author+email["Shawn Wagner" "shawnw.mobile@gmail.com"]}
