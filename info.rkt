@@ -3,6 +3,6 @@
 (define deps '("base" "soup-lib"))
 (define build-deps '("scribble-lib" "racket-doc"))
 (define pkg-desc "format from SLIB ported to Racket")
-(define version "0.0")
+(define version "3.1.1")
 (define pkg-authors '(shawnw))
 (define license 'Unlicense)
