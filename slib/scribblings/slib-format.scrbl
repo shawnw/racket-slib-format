@@ -105,20 +105,27 @@ The maximum number of iterations performed by a @tt{~{...~}} control. Has effect
 
 @subsection{Racket-specific configuration}
 
-@defparam[format:char-style style (or/c 'ascii 'racket) #:value 'racket]{
+@defparam[format:char-style style (or/c 'ascii 'racket 'lisp) #:value 'racket]{
 
 As originally written, @code{format} uses ASCII abbreviations and @hyperlink["https://en.wikipedia.org/wiki/Caret_notation"]{caret notation} for rendering control character
-literals, so that, say, @code|{(format "~@C" #\tab)}| returns @code{"#\\ht"}, and prints characters with a value greater than 127 in a variable-digit-count octal notation.
- These character literals cannot be read back with Racket's @code{read}.
+literals, so that, say, @code|{(format "~@C" #\tab)}| returns @code{"#\\ht"}, and prints characters with a value greater than 127 in a variable-digit-count octal notation
+ (I believe the code assumes that characters are single bytes). These character literals cannot be read back with Racket's @code{read}.
 
-When this parameter is set to @code{'racket}, it will instead use
+When this parameter is set to @code{'racket} (The default), it will instead use
 @hyperlink["https://docs.racket-lang.org/reference/reader.html#%28part._parse-character%29"]{forms that the Racket reader understands} for @tt["~@C"],
 and Unicode symbols or @tt{U+XXXX} forms for unprintable characters for @tt["~:C"].
+
+The @code{'lisp} value is the same as @code{'racket} for @tt["~@C"], but uses Common Lisp style names for control characters and semi-standard non-printing characters
+ in @tt["~:C"], based on Clozure's implementation.
 
 @examples[#:eval format-evaluator
           (parameterize ([format:char-style 'racket])
             (list (format #f "~@C ~@C ~@C ~@C" #\backspace #\ÿ #\u2028 #\newline)
                   (format #f "foo~:Cbar~:Cbaz~:C~:C" #\space #\tab #\u2028 #\newline)))
+
+          (parameterize ([format:char-style 'lisp])
+            (list (format #f "~@C ~@C ~@C ~@C" #\backspace #\ÿ #\u2028 #\newline)
+                  (format #f "foo ~:C bar ~:C baz ~:C ~:C" #\space #\tab #\u2028 #\newline)))
 
           (parameterize ([format:char-style 'ascii])
             (list (format #f "~@C ~@C ~@C ~@C" #\backspace #\ÿ #\u2028 #\newline)

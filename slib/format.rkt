@@ -10,7 +10,7 @@
   [format:max-iterations (parameter/c exact-nonnegative-integer?)]
   [format:iteration-bounded (parameter/c any/c boolean?)]
   [format:expch (parameter/c char?)]
-  [format:char-style (parameter/c (or/c 'ascii 'racket))]
+  [format:char-style (parameter/c (or/c 'ascii 'racket 'lisp))]
   ;[format (-> (or/c boolean? output-port? string? number?) any/c ... (or/c boolean? string?))]
   [format (->i ([first (or/c boolean? output-port? string? number?)])
                #:rest [args (first)
@@ -1631,12 +1631,12 @@
 (define (format:char->str ch)
   (case (format:char-style)
     ((ascii) (format:char->str/ascii ch))
-    ((racket) (format:char->str/racket ch))
+    ((racket lisp) (format:char->str/racket ch))
     (else (error "invalid character printing style" (format:char-style)))))
 
 (define (format:char->str/ascii ch)
   (let ((int-rep (char->integer ch)))
-    (if (< int-rep 0)			; if chars are [-128...+127]
+    #;(if (< int-rep 0)			; if chars are [-128...+127]
 	(set! int-rep (+ int-rep 256)))
     (string-append
      "#\\"
@@ -1655,8 +1655,8 @@
 
 ;; Write characters using syntax the Racket reader can understand.
 (define racket-char-names
-  #hasheqv((#\nul . "#\\nul") (#\backspace . "#\\backspace") (#\tab . "#\\tab") (#\newline . "#\\newline") (#\vtab . "#\\vtab") (#\page . "#\\page") (#\return . "#\\return")
-                           (#\space . "#\\space") (#\rubout . "#\\rubout")))
+  '#hasheqv((#\nul . "#\\nul") (#\backspace . "#\\backspace") (#\tab . "#\\tab") (#\newline . "#\\newline") (#\vtab . "#\\vtab") (#\page . "#\\page") (#\return . "#\\return")
+                               (#\space . "#\\space") (#\rubout . "#\\rubout")))
 (define (char->unicode ch)
   (string-append (if (char<=? ch #\uFFFF) "#\\u" "#\\U") (~r (char->integer ch) #:base '(up 16) #:min-width 4 #:pad-string "0")))
 (define (format:char->str/racket ch)
@@ -1673,6 +1673,7 @@
   (case (format:char-style)
     [(ascii) (format:colon-char->str/ascii ch)]
     [(racket) (format:colon-char->str/racket ch)]
+    [(lisp) (format:colon-char->str/lisp ch)]
     (else (error "invalid character printing style" (format:char-style)))))
 
 (define (format:colon-char->str/ascii ch)
@@ -1694,7 +1695,7 @@
        (string ch)))))
 
 (define (format:colon-char->str/racket ch)
-  (let ((c (char->integer ch)))
+  (let ([c (char->integer ch)])
     (cond
       [(< c #x20) ; assumes that control chars are < #x20
        (string (integer->char (+ c #x2400)))]
@@ -1702,6 +1703,22 @@
       [(char=? ch #\space) "␣"]
       [(char=? ch #\u00A0) "⍽"] ; Non-breaking Space
       [(char-graphic? ch) (string ch)]
+      [else
+       (string-append "U+" (~r c #:base '(up 16) #:min-width 4 #:pad-string "0"))])))
+
+(define lisp-char-names
+  '#hasheqv((#\nul . "Null") (#\backspace . "Backspace") (#\tab . "Tab") (#\newline . "Newline") (#\page . "Page") (#\return . "Return")
+                             (#\space . "Space") (#\rubout . "Rubout")))
+;;; Use Common Lisp style names for non-printable characters
+(define (format:colon-char->str/lisp ch)
+  (let ([c (char->integer ch)])
+    (cond
+      [(< c #x20) ; control characters
+       (hash-ref lisp-char-names ch (lambda () (string-titlecase (vector-ref format:ascii-non-printable-charnames c))))]
+      [(char=? ch #\rubout) "Rubout"]
+      [(char=? ch #\space) "Space"]
+      [(char-graphic? ch)
+       (string ch)]
       [else
        (string-append "U+" (~r c #:base '(up 16) #:min-width 4 #:pad-string "0"))])))
 

@@ -24,9 +24,9 @@
 (define-syntax if
   (syntax-rules (not)
     [(if (not test) body)
-     (unless test body)]
+     (%primitive-if test (void) body)]
     [(if test body)
-     (when test body)]
+     (%primitive-if test body (void))]
     [(if test when-true when-false)
      (%primitive-if test when-true when-false)]))
 
@@ -192,6 +192,7 @@
   (test '("~:c" #\a) "a")
   (test `("~:c" ,(integer->char 1)) "^A")
   (test `("~:c" ,(integer->char 27)) "^[")
+  (test '("~:c" #\space) " ")
   (test '("~7:c") "^G")
   (test `("~:c" ,(integer->char 128)) "#\\200")
   (test `("~:c" ,(integer->char 127)) "#\\177")
@@ -212,9 +213,32 @@
   (test '("~:c" #\a) "a")
   (test `("~:c" ,(integer->char 1)) "␁")
   (test `("~:c" ,(integer->char 27)) "␛")
+  (test '("~:c" #\space) "␣")
   (test '("~7:c") "␇")
   (test `("~:c" ,(integer->char 128)) "U+0080")
   (test `("~:c" ,(integer->char 127)) "␡")
+  (test `("~:c" ,(integer->char 255)) "ÿ"))
+
+
+(displayln "Common Lisp style characters")
+(parameterize ([format:char-style 'lisp])
+  (test '("~c" #\a) "a")
+  (test '("~@c" #\a) "#\\a")
+  (test `("~@c" ,(integer->char 32)) "#\\space")
+  (test `("~@c" ,(integer->char 0)) "#\\nul")
+  (test `("~@c" ,(integer->char 27)) "#\\u001B")
+  (test `("~@c" ,(integer->char 127)) "#\\rubout")
+  (test `("~@c" ,(integer->char 128)) "#\\u0080")
+  (test `("~@c" ,(integer->char 255)) "#\\ÿ")
+  (test '("~65c") "A")
+  (test '("~7@c") "#\\u0007")
+  (test '("~:c" #\a) "a")
+  (test `("~:c" ,(integer->char 1)) "Soh")
+  (test `("~:c" ,(integer->char 27)) "Esc")
+  (test '("~:c" #\space) "Space")
+  (test '("~7:c") "Bel")
+  (test `("~:c" ,(integer->char 128)) "U+0080")
+  (test `("~:c" ,(integer->char 127)) "Rubout")
   (test `("~:c" ,(integer->char 255)) "ÿ"))
 
 
