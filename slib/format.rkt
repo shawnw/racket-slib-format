@@ -2,7 +2,7 @@
 
 ; Adapted to Racket by Shawn Wagner
 
-(require racket/contract racket/port racket/pretty soup-lib/parameter (only-in racket/format ~r))
+(require racket/contract racket/port racket/pretty (only-in soup-lib/control named-let-values) soup-lib/parameter (only-in racket/format ~r))
 (provide
  (contract-out
   [format:symbol-case-conv (parameter/c (or/c (-> string? string?) #f))]
@@ -322,40 +322,37 @@
   (define format:num->roman
     (lambda (n)
       (if (and (integer? n) (> n 0))
-	  (let loop ((n n)
-		     (romans format:roman-alist)
-		     (boundaries format:roman-boundary-values)
-		     (s '()))
-	    (if (null? romans)
-		(list->string (reverse s))
-		(let ((roman-val (caar romans))
-		      (roman-dgt (cadar romans))
-		      (bdry (car boundaries)))
-		  (let loop2 ((q (quotient n roman-val))
-			      (r (remainder n roman-val))
-			      (s s))
-		    (if (= q 0)
-			(if (and bdry (>= r (- roman-val bdry)))
-			    (loop (remainder r bdry) (cdr romans)
-				  (cdr boundaries)
-				  (cons roman-dgt
-					(append
-					 (cdr (assv bdry romans))
-					 s)))
-			    (loop r (cdr romans) (cdr boundaries) s))
-			(loop2 (- q 1) r (cons roman-dgt s)))))))
-	  (raise-argument-error 'format "positive-integer?" n))))
-
+          (let loop ((n n)
+                     (romans format:roman-alist)
+                     (boundaries format:roman-boundary-values)
+                     (s '()))
+            (if (null? romans)
+                (list->string (reverse s))
+                (let ((roman-val (caar romans))
+                      (roman-dgt (cadar romans))
+                      (bdry (car boundaries)))
+                  (named-let-values loop2 ([(q r) (quotient/remainder n roman-val)]
+                                           [(s) s])
+                    (if (= q 0)
+                        (if (and bdry (>= r (- roman-val bdry)))
+                            (loop (remainder r bdry) (cdr romans)
+                                  (cdr boundaries)
+                                  (cons roman-dgt
+                                        (append
+                                         (cdr (assv bdry romans))
+                                         s)))
+                            (loop r (cdr romans) (cdr boundaries) s))
+                        (loop2 (- q 1) r (cons roman-dgt s)))))))
+          (raise-argument-error 'format "positive-integer?" n))))
+  
   (define format:num->cardinal999
     (lambda (n)
       ;;this procedure is inspired by the Bruno Haible's CLisp
       ;;function format-small-cardinal, which converts numbers
       ;;in the range 1 to 999, and is used for converting each
       ;;thousand-block in a larger number
-      (let* ((hundreds (quotient n 100))
-	     (tens+ones (remainder n 100))
-	     (tens (quotient tens+ones 10))
-	     (ones (remainder tens+ones 10)))
+      (let*-values ([(hundreds tens+ones) (quotient/remainder n 100)]
+                    [(tens ones) (quotient/remainder tens+ones 10)])
 	(append
 	 (if (> hundreds 0)
 	     (append
@@ -392,8 +389,7 @@
 			  (s '()))
 		 (if (= n 0)
 		     (list->string s)
-		     (let ((n-before-block (quotient n 1000))
-			   (n-after-block (remainder n 1000)))
+		     (let-values ([(n-before-block n-after-block) (quotient/remainder n 1000)])
 		       (loop n-before-block
 			     (+ power3 1)
 			     (if (> n-after-block 0)
@@ -422,8 +418,7 @@
 	    ((= n 0) "zeroth")
 	    ((< n 0) (string-append "minus " (format:num->ordinal (- n))))
 	    (else
-	     (let ((hundreds (quotient n 100))
-		   (tens+ones (remainder n 100)))
+	     (let-values ([(hundreds tens+ones) (quotient/remainder n 100)])
 	       (string-append
 		(if (> hundreds 0)
 		    (string-append
@@ -433,8 +428,7 @@
 		(if (= tens+ones 0) ""
 		    (if (< tens+ones 20)
 			(vector-ref format:ordinal-ones-list tens+ones)
-			(let ((tens (quotient tens+ones 10))
-			      (ones (remainder tens+ones 10)))
+			(let-values ([(tens ones) (quotient/remainder tens+ones 10)])
 			  (if (= ones 0)
 			      (vector-ref format:ordinal-tens-list tens)
 			      (string-append
