@@ -48,9 +48,9 @@
 (define-syntax if
   (syntax-rules (not)
     [(if (not test) body)
-     (unless test body)]
+     (%primitive-if test (void) body)]
     [(if test body)
-     (when test body)]
+     (%primitive-if test body (void))]
     [(if test when-true when-false)
      (%primitive-if test when-true when-false)]))
 
